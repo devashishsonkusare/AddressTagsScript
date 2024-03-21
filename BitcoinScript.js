@@ -46,7 +46,7 @@ async function createOrUpdateTableAndProcessData() {
         let page = 1;
         let hasNextPage = true;
         while (hasNextPage) {
-            const url = `https://www.oklink.com/api/v5/explorer/transaction/transaction-list?chainShortName=BTC&limit=1000&page=${page}`;
+            const url = `https://www.oklink.com/api/v5/explorer/transaction/transaction-list?chainShortName=BTC&limit=5000&page=${page}`;
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {

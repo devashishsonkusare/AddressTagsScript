@@ -4,5 +4,7 @@ RUN mkdir -p $PROJECT_DIR
 WORKDIR /$PROJECT_DIR
 ADD BitcoinScript.js BitcoinScript.js
 RUN npm install
+RUN npm install pg
+RUN npm install axios 
 EXPOSE 3000
 ENTRYPOINT ["node", "BitcoinScript.js"]

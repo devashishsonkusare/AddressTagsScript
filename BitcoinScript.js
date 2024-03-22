@@ -1,6 +1,6 @@
-import pkg from 'pg';
+const pkg = require('pg');
 const { Client } = pkg;
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
 
 async function fetchEntityLabel(address) {
     const url = `https://www.oklink.com/api/v5/explorer/address/entity-label?chainShortName=BTC&address=${address}`;

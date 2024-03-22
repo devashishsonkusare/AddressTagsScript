@@ -5,4 +5,3 @@ WORKDIR /$PROJECT_DIR
 ADD BitcoinScript.js BitcoinScript.js
 RUN npm install
 EXPOSE 3000
-CMD ["node", "BitcoinScript.js"]

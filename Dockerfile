@@ -6,4 +6,4 @@ ADD BitcoinScript.js BitcoinScript.js
 ADD package.json package.json
 RUN npm install
 EXPOSE 3000
-ENTRYPOINT ["node", "BitcoinScript.js"]
+#ENTRYPOINT ["node", "BitcoinScript.js"]

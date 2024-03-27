@@ -1,18 +1,42 @@
-const pkg = require('pg');
+import pkg from 'pg';
 const { Client } = pkg;
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
+async function fetchEntityLabel(address, retries = 3) {
+    const url = `https://www.oklink.com/api/v5/explorer/address/entity-label?chainShortName=LTC&address=${address}`;
 
-async function fetchEntityLabel(address) {
-    const url = `https://www.oklink.com/api/v5/explorer/address/entity-label?chainShortName=BTC&address=${address}`;
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            'Ok-Access-Key': '05045e6c-c119-44c3-8cd6-f616f4bfa941'
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Ok-Access-Key': '05045e6c-c119-44c3-8cd6-f616f4bfa941'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.code === '50013') {
+            console.log('OkLink API is busy. Retrying in 5 minutes...');
+            await new Promise(resolve => setTimeout(resolve, 5 * 60 * 1000));
+            return fetchEntityLabel(address, retries - 1);
         }
-    });
-    const data = await response.json();
-    return data.data.map(item => item.label || 'null').join(', ');
+
+        if (data.data) {
+            return data.data.map(item => item.label || 'null').join(', ');
+        } else {
+            console.log('No entity label data found.');
+            return 'null';
+        }
+    } catch (error) {
+        console.error('FetchError:', error);
+
+        if (retries > 0 && error.code === 'ECONNRESET') {
+            console.log(`Retrying fetchEntityLabel for address: ${address}`);
+            return fetchEntityLabel(address, retries - 1);
+        } else {
+            throw error;
+        }
+    }
 }
 
 async function createOrUpdateTableAndProcessData() {
@@ -30,13 +54,13 @@ async function createOrUpdateTableAndProcessData() {
         const checkTableQuery = `SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE  table_schema = 'public' 
-            AND    table_name   = 'bitcoin'
+            AND    table_name   = 'litecoin'
         )`;
         const { rows: tableCheckRows } = await client.query(checkTableQuery);
         const tableExists = tableCheckRows[0].exists;
 
         if (!tableExists) {
-            const createTableQuery = `CREATE TABLE bitcoin (
+            const createTableQuery = `CREATE TABLE litecoin (
                 addresss TEXT PRIMARY KEY,
                 label TEXT,
                 risk TEXT DEFAULT NULL
@@ -47,7 +71,7 @@ async function createOrUpdateTableAndProcessData() {
         let page = 1;
         let hasNextPage = true;
         while (hasNextPage) {
-            const url = `https://www.oklink.com/api/v5/explorer/transaction/transaction-list?chainShortName=BTC&limit=5000&page=${page}`;
+            const url = `https://www.oklink.com/api/v5/explorer/transaction/transaction-list?chainShortName=LTC&limit=1000&page=${page}`;
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
@@ -71,8 +95,8 @@ async function createOrUpdateTableAndProcessData() {
                     const labels = await fetchEntityLabel(address);
                     if (labels.trim() !== '') {
                         const query = tableExists ?
-                            'INSERT INTO bitcoin (addresss, label, risk) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING' :
-                            'INSERT INTO bitcoin (addresss, label, risk) VALUES ($1, $2, $3)';
+                            'INSERT INTO litecoin (addresss, label, risk) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING' :
+                            'INSERT INTO litecoin (addresss, label, risk) VALUES ($1, $2, $3)';
                         const values = [address, labels, ""];
                         console.log("ADDED", values)
                         await client.query(query, values);
@@ -104,6 +128,5 @@ async function createOrUpdateTableAndProcessData() {
         await client.end();
     }
 }
-
 
 createOrUpdateTableAndProcessData();

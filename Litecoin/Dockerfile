@@ -5,6 +5,6 @@ WORKDIR /$PROJECT_DIR
 COPY package.json /$PROJECT_DIR/package.json
 RUN npm cache clean --force && \
     npm install --loglevel verbose --legacy-peer-deps
-COPY Litecoin.js /$PROJECT_DIR/Litecoin.js
+COPY LitecoinScript.js /$PROJECT_DIR/LitecoinScript.js
 EXPOSE 3000
 CMD ["npm", "start"]

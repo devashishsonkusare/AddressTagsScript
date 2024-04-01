@@ -42,7 +42,7 @@ async function fetchEntityLabel(address, retries = 3) {
 async function createOrUpdateTableAndProcessData() {
     const client = new Client({
         user: 'pg',
-        host: '35.200.231.119',
+        host: '127.0.0.1',
         database: 'postgres',
         password: 'pass',
         port: '5432',
